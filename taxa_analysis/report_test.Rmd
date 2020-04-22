@@ -1,0 +1,288 @@
+---
+title: "16S Reads Taxonomic Analysis"
+#author: "Tony J. Lam"
+#date modified: Sept 4, 2019
+header-includes: 
+  \usepackage{fancyhdr} 
+  \usepackage{graphicx} 
+  \usepackage{eurosym} 
+  \usepackage{lastpage}
+  \usepackage{booktabs,xcolor} 
+  \pagestyle{fancy} 
+  \fancyhf{} 
+  \addtolength{\headheight}{1.0cm} 
+  \rhead{Microbiome \& Me - \today} 
+  \lhead{\includegraphics[width=1cm]{logo.png}} 
+  \cfoot{Page \thepage{} of \pageref{LastPage}}
+  \fancypagestyle{plain}{\pagestyle{fancy}}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r results='hide', message=FALSE, warning=FALSE, include=FALSE}
+## Load Library ----
+require(dada2)
+require(tidyr)
+require(dplyr)
+require(plyr)
+require(ggplot2)
+require(reshape2)
+require(ggrepel)
+require(gridExtra)
+require(gplots)
+```
+
+```{r results='hide', message=FALSE, warning=FALSE, include=FALSE}
+#### Set working directories ####
+
+# path to fasta files
+dataset_dir <- "~/Desktop/16S_data/18121" 
+
+# metadata file path
+metadata_path <- "~/Desktop/16S_data/18121/metadata.csv"
+
+# output dirctory
+output_dir <- "~/Desktop/Oil_pipeline_analysis"
+
+# input forward and reverse sequences to consider ('\n' delimited)
+input_fasta_list_foward <- "~/Desktop/16S_data/18121/18121_fasta_list_F.txt"
+input_fasta_list_reverse <- "~/Desktop/16S_data/18121/18121_fasta_list_R.txt"
+
+# 16S reference database path
+reference_db <- "~/Desktop/16S_data/databases/silva_nr_v132_train_set.fa.gz"
+
+# path to Rdata file if not preprocessing
+rdata_path <- '~/Desktop/16S_data/rdata/dada2_test1_2.RData'
+
+# Set working directory to output direcotry
+setwd(output_dir)
+
+#### Settings ####
+# preprocess data, else load from Rdata file
+preprocess = FALSE
+
+```
+
+```{r results='hide', message=FALSE, warning=FALSE, include=FALSE}
+## Dada2 Workflow ####
+# Preprocessing, Generate Abundance, and Taxanomic Assignments
+metadata = read.csv(metadata_path,row.names = 1)
+fnFs = read.delim(input_fasta_list_foward, sep= '\n',header = FALSE)
+fnRs = read.delim(input_fasta_list_reverse, sep = '\n',header = FALSE)
+
+# Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
+sample.names <- sapply(strsplit(basename(as.character(fnFs[,1])), "_"), `[`, 1)
+    
+infiles = data.frame(samples = sample.names, forward=sort(fnFs[,1]), reverse=sort(fnRs[,1]))
+```
+
+## Input Data
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#print table
+knitr::kable(infiles, format="markdown",full_width = TRUE,) 
+```
+
+```{r results='hide', message=FALSE, warning=FALSE, include=FALSE}
+#### Preprocessing & Abundance & Taxanomic Assignment ####
+
+if(preprocess == TRUE){
+
+    #make path for infiles
+    fnFs = file.path(dataset_dir, fnFs[,1])
+    fnRs = file.path(dataset_dir, fnRs[,1])
+    
+    # Place filtered files in filtered/ subdirectory
+    filtFs <- file.path(output_dir, "filtered_reads", paste0(sample.names, "_L001_R1_001.filt_compressed.fastq"))
+    filtRs <- file.path(output_dir, "filtered_reads", paste0(sample.names, "_L001_R2_001.filt_compressed.fastq"))
+    names(filtFs) <- sample.names
+    names(filtRs) <- sample.names
+    
+    out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
+                         maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
+                         compress=TRUE, multithread=TRUE) # On Windows set multithread=FALSE
+    
+    # Learn error rates
+    errF <- learnErrors(filtFs, multithread=TRUE)
+    errR <- learnErrors(filtRs, multithread=TRUE)
+    plotErrors(errF, nominalQ=TRUE)
+    
+    # Sample inference
+    dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+    dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+    
+    # Merge paird ends
+    mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+     
+    # Construct Sequence Abundance Table
+    seqtab <- makeSequenceTable(mergers)
+    
+    # Get Abundance counts & Remove Chimeras
+    seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+    
+    # Taxanomically Assign
+    taxa.80 <- assignTaxonomy(seqs = seqtab.nochim, 
+                              refFasta = "SILVA_nr_132_SRB_mod_unlabeled.fna.gz", 
+                              multithread=TRUE, 
+                              minBoot=80)
+} else {
+  load(rdata_path)
+}
+
+## Rename ####
+abundance <- seqtab.nochim
+taxa <- taxa.80
+```
+
+```{r results='hide', message=FALSE, warning=FALSE, include=FALSE}
+#### Plotting Figures Functions & Prep ####
+
+## Consolidate top N taxa function ####
+  top_n_consolidated <- function(df, n, focus_taxa){
+    # remove NA
+    # make list of top[n]
+    top_n <- c()
+    # itterate over each column, sort column
+    for (i in 2:ncol(df)){
+      c.name <- colnames(df)[i]
+      #order df by column: decending value
+      df.tmp <- df[order(-df[i]),]
+      top_abu <- as.character(df.tmp[1:n,1])
+      top_n <- c(top_n,top_abu)
+    }
+  
+    # get unique list
+    top_n.unique <- unique(top_n)
+    # remove NA
+    top_n.unique <- top_n.unique[!is.na(top_n.unique)]
+    top_n.unique <- top_n.unique[order(top_n.unique)]
+    
+    # get if counts
+    meep <- subset(df, eval(parse(text = focus_taxa)) %in% top_n.unique)
+    # get else counts
+    meep.not <- subset(df, !(eval(parse(text = focus_taxa)) %in% top_n.unique))
+    other <- colSums(meep.not[-1])
+    other <- c('_Other', other)
+    other <- t(as.data.frame(other))
+    colnames(other)[1] <- focus_taxa
+    other <- as.data.frame(other)
+    top_n_df <- rbind(meep, other)
+    
+    return(top_n_df)
+  }
+## Subset taxanomic phyla ####
+  phyla_subset <- function(taxa_df, meta, abundance_df, Consolidated_focus_abundnace, focus_taxa){
+  
+    # get taxanomic assignment of focus taxanomic class
+    taxa.focus <- as.data.frame(taxa_df[,focus_taxa])
+    colnames(taxa.focus) <- c(focus_taxa)
+    
+    # merge with abundance dataframe
+    abundance_df <- as.data.frame(abundance_df)
+    test <- cbind(taxa.focus,abundance_df)
+    
+    # consolidate based on taxa of focus
+    Consolidated_focus_abundnace <- ddply(test,1,numcolwise(sum))
+    
+    # build function to take top N taxa of each sample + label rest as other.
+    new_df <- top_n_consolidated(Consolidated_focus_abundnace, 3, focus_taxa)
+    new_df.melt <- melt(new_df,focus_taxa)
+    new_df.melt <- transform(new_df.melt, value = as.numeric(value))
+    
+    #join metadata with data
+    meta.t <- meta
+    meta.t[,'variable'] <- row.names(meta)
+    meep.melt <- new_df.melt
+    df.meta <- merge(meta.t, meep.melt, by='variable')
+    
+    return(df.meta)
+  }
+## Plot Sample Taxanomic Distribution ####
+  sample_plot <- function(df, focus_taxa = focus_taxa, proportion=FALSE, legend_rows=2, text_size=15){
+    
+      # generate color pallete https://stackoverflow.com/questions/8197559/emulate-ggplot2-default-color-palette
+      gg_color_hue <- function(n) {
+        hues = seq(15, 375, length=n+1)
+        hcl(h=hues, l=60, c=100)[1:n]
+      }
+      
+      #make custom palette
+      mycols <- gg_color_hue(length(unique(df[[focus_taxa]])))
+      names(mycols) <- unique(df[[focus_taxa]])
+      # manually set other to gray
+      mycols["_Other"] <- "#8b8d99"
+    
+      # generate plot
+      g <- ggplot() 
+      
+      if (proportion==TRUE){
+        g <- g + geom_bar(aes(y = value, x = variable, fill = eval(parse(text = focus_taxa))), 
+                          data = df, stat = "identity", colour="black", position = "fill")+
+          scale_y_continuous(labels = scales::percent)+
+          ylab('abundance (%)')
+      } else {
+        g <- g + geom_bar(aes(y = value, x = variable, fill = eval(parse(text = focus_taxa))), 
+                 data = df, stat = "identity", colour="black") + 
+        ylab('abundance')
+      }
+      g <- g + theme(legend.position = "bottom", legend.title = element_blank(),
+                     legend.text=element_text(size=text_size),
+                     axis.text.x = element_text(angle = 90, hjust = 1)) +
+              xlab('sample')+
+              ggtitle(paste0('Taxanomic Rank: ', focus_taxa)) +
+              guides(fill=guide_legend(nrow=legend_rows,byrow=TRUE)) +
+              scale_fill_manual(values=mycols)
+      return (g)
+  }
+
+# inverse of abundance for viewability in R ####
+abundance.t <- t(abundance)
+abundance.t <- as.data.frame(abundance.t)
+# load metadata ####
+meta <- read.csv(metadata_path, row.names = 1, stringsAsFactors = FALSE)
+
+```
+
+## Taxanomic Analysis
+```{r results='hide', message=FALSE, warning=FALSE, include=FALSE}
+# Plot Order
+focus_taxa = "Order"
+taxa.genus <- phyla_subset(taxa, meta, abundance.t, Consolidated_focus_abundnace, focus_taxa)
+g.order <- sample_plot(taxa.genus , focus_taxa, proportion = TRUE, legend_rows = 3)
+#facet by meta
+g.order <- g.order + facet_grid(~Location_simple, scales = "free", space = "free")
+
+# Plot Family
+focus_taxa = "Family"
+taxa.genus <- phyla_subset(taxa, meta, abundance.t, Consolidated_focus_abundnace, focus_taxa)
+g.family <- sample_plot(taxa.genus , focus_taxa, proportion = TRUE, legend_rows = 3)
+g.family <- g.family + facet_grid(~Location_simple, scales = "free", space = "free")
+
+# Plot Genus
+focus_taxa = "Genus"
+taxa.genus <- phyla_subset(taxa, meta, abundance.t, Consolidated_focus_abundnace, focus_taxa)
+g.genus <- sample_plot(taxa.genus , focus_taxa, proportion = TRUE, legend_rows = 3)
+g.genus <- g.genus + facet_grid(~Location_simple, scales = "free", space = "free")
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, fig.height = 9, fig.width = 18, fig.align = "center", dpi=800}
+#plot order figure
+g.order
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, fig.height = 9, fig.width = 18, fig.align = "center", dpi=800}
+#plot family figure
+g.family
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, fig.height = 9, fig.width = 18, fig.align = "center", dpi=800}
+#plot genus figure
+g.genus
+```
+
+## HeatMap line 153
+
+## PCA & Hierarcical Clustering
