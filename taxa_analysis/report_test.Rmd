@@ -61,7 +61,7 @@ setwd(output_dir)
 
 #### Settings ####
 # preprocess data, else load from Rdata file
-preprocess = FALSE
+preprocess = TRUE
 
 # path to Rdata file if not preprocessing
 #rdata_path <- '~/Desktop/16S_data/rdata/dada2_test1_2.RData'
