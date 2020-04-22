@@ -41,7 +41,7 @@ require(gplots)
 # path to fasta files
 setwd(getwd())
 
-dataset_dir <- "/sample_reads"
+dataset_dir <- "sample_reads"
 
 # metadata file path
 metadata_path <- "metadata.csv"
@@ -73,8 +73,8 @@ rdata_path <- NULL
 ## Dada2 Workflow ####
 # Preprocessing, Generate Abundance, and Taxanomic Assignments
 metadata = read.csv(metadata_path,row.names = 1)
-fnFs = read.delim(input_fasta_list_foward, sep= '\n',header = FALSE)
-fnRs = read.delim(input_fasta_list_reverse, sep = '\n',header = FALSE)
+mfnFs = read.delim(input_fasta_list_foward, sep= '\n',header = FALSE)
+mfnRs = read.delim(input_fasta_list_reverse, sep = '\n',header = FALSE)
 
 # Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
 sample.names <- sapply(strsplit(basename(as.character(fnFs[,1])), "_"), `[`, 1)
@@ -95,8 +95,8 @@ knitr::kable(infiles, format="markdown",full_width = TRUE,)
 if(preprocess == TRUE){
 
     #make path for infiles
-    fnFs = file.path(dataset_dir, fnFs[,1])
-    fnRs = file.path(dataset_dir, fnRs[,1])
+    fnFs = file.path(dataset_dir, mfnFs[,1])
+    fnRs = file.path(dataset_dir, mfnRs[,1])
     
     # Place filtered files in filtered/ subdirectory
     filtFs <- file.path(output_dir, "filtered_reads", paste0(sample.names, "_L001_R1_001.filt_compressed.fastq"))
