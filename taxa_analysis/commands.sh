@@ -1,2 +1,2 @@
 #!/bin/bash
-R -e rmarkdown::render”(‘report_test.Rmd')"
+Rscript -e "rmarkdown::render('report_test.Rmd')"
