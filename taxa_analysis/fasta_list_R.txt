@@ -1,0 +1,15 @@
+18121xD-10-01_L001_R2_001.filt_compressed.fastq
+18121xD-10-02_L001_R2_001.filt_compressed.fastq
+18121xD-10-03_L001_R2_001.filt_compressed.fastq
+18121xD-10-05_L001_R2_001.filt_compressed.fastq
+18121xD-10-10_L001_R2_001.filt_compressed.fastq
+18121xD-10-11_L001_R2_001.filt_compressed.fastq
+18121xD-10-12_L001_R2_001.filt_compressed.fastq
+18121xD-10-13_L001_R2_001.filt_compressed.fastq
+18121xD-10-14_L001_R2_001.filt_compressed.fastq
+18121xD-10-15_L001_R2_001.filt_compressed.fastq
+18121xD-10-16_L001_R2_001.filt_compressed.fastq
+18121xD-10-17_L001_R2_001.filt_compressed.fastq
+18121xD-10-18_L001_R2_001.filt_compressed.fastq
+18121xD-10-20_L001_R2_001.filt_compressed.fastq
+18121xD-10-21_L001_R2_001.filt_compressed.fastq

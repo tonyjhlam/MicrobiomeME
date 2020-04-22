@@ -1,0 +1,22 @@
+,Location,Location_simple,Source,Sample_type
+18121xD-10-01,BULLRUN 501CH - BW0001,BULLRUN,Product,Production fluid
+18121xD-10-02,LEE 401AH - BW0002,LEE,Product,Production fluid
+18121xD-10-03,OAK 102BH - BW0003,OAK,Product,Production fluid
+18121xD-10-04,PINE 102BH - BW0004,PINE,Product,Production fluid
+18121xD-10-05,IROQUOIS 201AH - BW0005,IROQUOIS,Product,Production fluid
+18121xD-10-06,BLACKFOOT 102 - BW0006,BLACKFOOT,Product,Production fluid
+18121xD-10-07,BLACKFOOT 103 - BW0007,BLACKFOOT,Product,Production fluid
+18121xD-10-08,ELBERT 106AH - BW0008,ELBERT,Product,Production fluid
+18121xD-10-09,CHINOOK 105CH - BW0009,CHINOOK,Product,Production fluid
+18121xD-10-10,MOHICAN_ 102AH - BW00010,MOHICAN,Product,Production fluid
+18121xD-10-11,CREE 102BH - BD00011,CREE,Shaker_Produced_Mud,Drilling fluid produced water based mud (Shaker)
+18121xD-10-12,CREE 102BH - BD00012,CREE,Tank_Produced_Mud,Drilling fluid water based produced mud (tank)
+18121xD-10-13,CREE 102BH - BD00013,CREE,Tank_Fresh_Mud,Drilling fluid water based freshwater mud (tank)
+18121xD-10-14,CREE 102BH - BD00014,CREE,Pit_Fresh_Mud,Drilling fluid water based freshwater mud (pit)
+18121xD-10-15,CREE 102BH - BD00015,CREE,Pit_Produced_Mud,Drilling fluid water based produced mud (pit)
+18121xD-10-16,BLACKFOOT 213BH - BD00016,BLACKFOOT,Pit_Produced_Mud,Drilling fluid water based produced mud (pit)
+18121xD-10-17,BLACKFOOT 213BH - BD00017,BLACKFOOT,Pit_Fresh_Mud,Drilling fluid water based fresh mud (pit)
+18121xD-10-18,BRAGG 407AH - BD00018,BRAGG,Tank_Produced_Mud,Drilling fluid water based produced mud (tank)
+18121xD-10-19,BRAGG 407AH - BD00019,BRAGG,Tank_Fresh_Mud,Drilling fluid water based fresh mud (tank)
+18121xD-10-20,REDWOOD PIT - BP00020,REDWOOD_PIT,Product,Production fluid
+18121xD-10-21,BLACKFOOT 213BH - BD00021,BLACKFOOT,Tank_Produced_Mud,Drilling fluid oil based produced mud (Tank)

@@ -39,23 +39,22 @@ require(gplots)
 #### Set working directories ####
 
 # path to fasta files
-dataset_dir <- "~/Desktop/16S_data/18121" 
+setwd(getwd())
+
+dataset_dir <- "/sample_reads"
 
 # metadata file path
-metadata_path <- "~/Desktop/16S_data/18121/metadata.csv"
+metadata_path <- "metadata.csv"
 
 # output dirctory
-output_dir <- "~/Desktop/Oil_pipeline_analysis"
+output_dir <- getwd()
 
 # input forward and reverse sequences to consider ('\n' delimited)
-input_fasta_list_foward <- "~/Desktop/16S_data/18121/18121_fasta_list_F.txt"
-input_fasta_list_reverse <- "~/Desktop/16S_data/18121/18121_fasta_list_R.txt"
+input_fasta_list_foward  <- "fasta_list_F.txt"
+input_fasta_list_reverse <- "fasta_list_R.txt"
 
 # 16S reference database path
-reference_db <- "~/Desktop/16S_data/databases/silva_nr_v132_train_set.fa.gz"
-
-# path to Rdata file if not preprocessing
-rdata_path <- '~/Desktop/16S_data/rdata/dada2_test1_2.RData'
+reference_db <- "databases/silva_nr_v132_train_set.fa.gz"
 
 # Set working directory to output direcotry
 setwd(output_dir)
@@ -63,6 +62,9 @@ setwd(output_dir)
 #### Settings ####
 # preprocess data, else load from Rdata file
 preprocess = FALSE
+
+# path to Rdata file if not preprocessing
+rdata_path <- '~/Desktop/16S_data/rdata/dada2_test1_2.RData'
 
 ```
 
@@ -108,7 +110,7 @@ if(preprocess == TRUE){
     # Learn error rates
     errF <- learnErrors(filtFs, multithread=TRUE)
     errR <- learnErrors(filtRs, multithread=TRUE)
-    plotErrors(errF, nominalQ=TRUE)
+    #plotErrors(errF, nominalQ=TRUE)
     
     # Sample inference
     dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
