@@ -77,9 +77,9 @@ mfnFs = read.delim(input_fasta_list_foward, sep= '\n',header = FALSE)
 mfnRs = read.delim(input_fasta_list_reverse, sep = '\n',header = FALSE)
 
 # Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
-sample.names <- sapply(strsplit(basename(as.character(fnFs[,1])), "_"), `[`, 1)
+sample.names <- sapply(strsplit(basename(as.character(mfnFs[,1])), "_"), `[`, 1)
     
-infiles = data.frame(samples = sample.names, forward=sort(fnFs[,1]), reverse=sort(fnRs[,1]))
+infiles = data.frame(samples = sample.names, forward=sort(mfnFs[,1]), reverse=sort(fnRs[,1]))
 ```
 
 ## Input Data
